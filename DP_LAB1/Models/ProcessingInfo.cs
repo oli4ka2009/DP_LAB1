@@ -7,28 +7,51 @@ using System.Threading.Tasks;
 namespace DP_LAB1.Models
 {
     /// <summary>
-    /// Містить детальну інформацію про результати обробки списку.
+    /// Незмінний результат обробки
     /// </summary>
+    public class ProcessingResult
+    {
+        public bool IsSuccess { get; set; }
+        public string ErrorMessage { get; set; }
+        public ListNode InputList { get; set; }
+        public ListNode ResultList { get; set; }
+        public ProcessingInfo Details { get; set; }
+
+        private ProcessingResult(bool success, string error,
+            ListNode input, ListNode result, ProcessingInfo details)
+        {
+            IsSuccess = success;
+            ErrorMessage = error ?? "";
+            InputList = input;
+            ResultList = result;
+            Details = details ?? new ProcessingInfo();
+        }
+
+        public static ProcessingResult Success(ListNode input, ListNode result, ProcessingInfo details) =>
+            new ProcessingResult(true, null, input, result, details);
+
+        public static ProcessingResult Error(string message) =>
+            new ProcessingResult(false, message, null, null, null);
+
+        public static ProcessingResult Empty() =>
+            new ProcessingResult(true, null, null, null, new ProcessingInfo());
+    }
+
     public class ProcessingInfo
     {
-        /// <summary>
-        /// Довжина вхідного списку.
-        /// </summary>
         public int InputLength { get; set; }
-
-        /// <summary>
-        /// Кількість від'ємних чисел у списку.
-        /// </summary>
         public int NegativeCount { get; set; }
-
-        /// <summary>
-        /// Добуток від'ємних чисел у списку.
-        /// </summary>
         public double ProductOfNegatives { get; set; }
+        public string NegativeNumbersDisplay { get; set; }
 
-        /// <summary>
-        /// Рядкове представлення списку від'ємних чисел.
-        /// </summary>
-        public string NegativeNumbersDisplay { get; set; } = "";
+        public ProcessingInfo() : this(0, 0, 1.0, "") { }
+
+        public ProcessingInfo(int length, int negCount, double product, string display)
+        {
+            InputLength = length;
+            NegativeCount = negCount;
+            ProductOfNegatives = product;
+            NegativeNumbersDisplay = display;
+        }
     }
 }

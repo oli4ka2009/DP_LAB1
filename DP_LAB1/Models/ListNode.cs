@@ -9,15 +9,18 @@ namespace DP_LAB1.Models
     /// <summary>
     /// Вузол однозв'язного списку
     /// </summary>
+    /// <summary>
+    /// Простий вузол зв'язного списку
+    /// </summary>
     public class ListNode
     {
-        public ListElement Head { get; set; }
-        public ListNode Tail { get; set; }
+        public ListElement Element { get; }
+        public ListNode Next { get; }
 
-        public ListNode(ListElement head, ListNode tail = null)
+        public ListNode(ListElement element, ListNode next = null)
         {
-            Head = head;
-            Tail = tail;
+            Element = element;
+            Next = next;
         }
     }
 }

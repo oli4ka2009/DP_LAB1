@@ -1,99 +1,93 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace DP_LAB1.Models
 {
     /// <summary>
     /// Незмінний список рядків у декларативному стилі
-    /// Кожна операція створює новий список замість зміни існуючого
+    /// Кожна операція створює новий список замість зміни існуючого
     /// </summary>
-    public class ImmutableStringList
+    public sealed class ImmutableStringList
     {
-        private readonly string[] items;
-        private readonly int count;
+        public static readonly ImmutableStringList Empty = new ImmutableStringList(Array.Empty<string>());
 
-        private ImmutableStringList(string[] items, int count)
+        private readonly string[] _items;
+
+        private ImmutableStringList(string[] items)
         {
-            this.items = items;
-            this.count = count;
+            _items = items;
         }
 
-        public ImmutableStringList(int capacity)
+        public ImmutableStringList(IEnumerable<string> items)
         {
-            items = new string[capacity];
-            count = 0;
+            _items = items?.ToArray() ?? Array.Empty<string>();
         }
 
-        public int Count => count;
+        public int Count => _items.Length;
 
         public string this[int index]
         {
-            get { return (index >= 0 && index < count) ? items[index] : null; }
+            get
+            {
+                if (index < 0 || index >= _items.Length)
+                    throw new IndexOutOfRangeException();
+                return _items[index];
+            }
         }
 
         /// <summary>
-        /// ДЕКЛАРАТИВНЕ додавання елементу - повертає НОВИЙ список
-        /// Не змінює поточний список, а створює новий
+        /// Додавання елементу. Створює новий список, на 1 елемент довший.
         /// </summary>
         public ImmutableStringList Add(string item)
         {
-            if (count >= items.Length)
-            {
-                return this;
-            }
-
-            string[] newItems = CreateNewArrayWithItem(items, count, item);
-
-            return new ImmutableStringList(newItems, count + 1);
+            string[] newItems = AddItemRecursive(_items, item, 0);
+            return new ImmutableStringList(newItems);
         }
 
         /// <summary>
-        /// Рекурсивне створення нового масиву з додатковим елементом
-        /// </summary>
-        private string[] CreateNewArrayWithItem(string[] source, int sourceCount, string newItem)
-        {
-            string[] result = new string[source.Length];
-
-            CopyArrayRecursive(source, result, 0, sourceCount);
-
-            result[sourceCount] = newItem;
-
-            return result;
-        }
-
-        /// <summary>
-        /// Рекурсивне копіювання масиву
-        /// </summary>
-        private void CopyArrayRecursive(string[] source, string[] target, int index, int maxIndex)
-        {
-            if (index >= maxIndex) return;
-
-            target[index] = source[index];
-            CopyArrayRecursive(source, target, index + 1, maxIndex);
-        }
-
-        /// <summary>
-        /// Перетворення в масив (створює новий масив)
+        /// Повертає копію внутрішнього масиву для збереження незмінності.
         /// </summary>
         public string[] ToArray()
         {
-            string[] result = new string[count];
-            CopyToArrayRecursive(result, 0);
-            return result;
+            return CopyRecursive(_items, 0);
         }
 
         /// <summary>
-        /// Рекурсивне копіювання в результуючий масив
+        /// Функція, що створює новий масив з доданим елементом.
+        /// Вона будує масив "знизу вгору" (від кінця до початку).
         /// </summary>
-        private void CopyToArrayRecursive(string[] target, int index)
+        private static string[] AddItemRecursive(string[] source, string newItem, int index)
         {
-            if (index >= count) return;
+            if (index >= source.Length)
+            {
+                var finalArray = new string[source.Length + 1];
+                finalArray[index] = newItem;
+                return finalArray;
+            }
 
-            target[index] = items[index];
-            CopyToArrayRecursive(target, index + 1);
+            string[] tailArray = AddItemRecursive(source, newItem, index + 1);
+
+            tailArray[index] = source[index];
+
+            return tailArray;
+        }
+
+        /// <summary>
+        /// Функція, що створює точну копію масиву.
+        /// </summary>
+        private static string[] CopyRecursive(string[] source, int index)
+        {
+            if (index >= source.Length)
+            {
+                return new string[source.Length];
+            }
+
+            string[] copiedTail = CopyRecursive(source, index + 1);
+
+            copiedTail[index] = source[index];
+
+            return copiedTail;
         }
     }
 }
