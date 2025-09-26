@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Globalization; // Потрібен для надійного парсингу
+using System.Globalization;
 
 namespace DP_LAB1.Models
 {
@@ -21,7 +21,7 @@ namespace DP_LAB1.Models
             TryParseAsNumber(Value, out double result) ? result : 0;
 
         /// <summary>
-        /// Чиста функція для перевірки та парсингу числа
+        /// Функція для перевірки та парсингу числа
         /// </summary>
         private static bool TryParseAsNumber(object value, out double result)
         {

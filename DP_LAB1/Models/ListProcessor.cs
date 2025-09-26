@@ -12,7 +12,7 @@ namespace DP_LAB1.Models
     public static class ListProcessor
     {
         /// <summary>
-        /// Чиста функція для обробки вхідного рядка
+        /// Функція для обробки вхідного рядка
         /// </summary>
         public static ProcessingResult Process(string input)
         {

@@ -7,9 +7,6 @@ using System.Threading.Tasks;
 namespace DP_LAB1.Models
 {
     /// <summary>
-    /// Вузол однозв'язного списку
-    /// </summary>
-    /// <summary>
     /// Простий вузол зв'язного списку
     /// </summary>
     public class ListNode

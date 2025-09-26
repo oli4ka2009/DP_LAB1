@@ -5,8 +5,7 @@ using System.Linq;
 namespace DP_LAB1.Models
 {
     /// <summary>
-    /// Незмінний список рядків у декларативному стилі
-    /// Кожна операція створює новий список замість зміни існуючого
+    /// Незмінний список рядків
     /// </summary>
     public sealed class ImmutableStringList
     {
@@ -46,7 +45,7 @@ namespace DP_LAB1.Models
         }
 
         /// <summary>
-        /// Повертає копію внутрішнього масиву для збереження незмінності.
+        /// Повертає копію внутрішнього масиву.
         /// </summary>
         public string[] ToArray()
         {
@@ -55,7 +54,6 @@ namespace DP_LAB1.Models
 
         /// <summary>
         /// Функція, що створює новий масив з доданим елементом.
-        /// Вона будує масив "знизу вгору" (від кінця до початку).
         /// </summary>
         private static string[] AddItemRecursive(string[] source, string newItem, int index)
         {

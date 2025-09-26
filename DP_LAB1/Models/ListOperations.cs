@@ -29,7 +29,7 @@ namespace DP_LAB1.Models
         public static bool IsEmpty(ListNode list) => list == null;
 
         /// <summary>
-        /// Чиста функція: довжина списку
+        /// Довжина списку
         /// </summary>
         public static int Length(ListNode list) =>
             IsEmpty(list) ? 0 : 1 + Length(Tail(list));
@@ -82,11 +82,11 @@ namespace DP_LAB1.Models
         }
 
         /// <summary>
-        /// Чиста функція: добуток від'ємних чисел у списку
+        /// Добуток від'ємних чисел у списку
         /// </summary>
         public static double ProductOfNegatives(ListNode list) =>
             IsEmpty(list)
-                ? 1.0  // Нейтральний елемент для добутку
+                ? 1.0
                 : MultiplyIfNegative(Head(list)) * ProductOfNegatives(Tail(list));
 
         private static double MultiplyIfNegative(ListElement element)
@@ -98,7 +98,7 @@ namespace DP_LAB1.Models
         }
 
         /// <summary>
-        /// Чиста функція: кількість від'ємних чисел
+        /// Кількість від'ємних чисел
         /// </summary>
         public static int CountNegatives(ListNode list) =>
             IsEmpty(list)
@@ -106,13 +106,13 @@ namespace DP_LAB1.Models
                 : (IsNegative(Head(list)) ? 1 : 0) + CountNegatives(Tail(list));
 
         /// <summary>
-        /// Чиста функція: перевірка чи елемент від'ємний
+        /// Перевірка чи елемент від'ємний
         /// </summary>
         private static bool IsNegative(ListElement element) =>
             element != null && element.IsNumeric && element.GetNumericValue() < 0;
 
         /// <summary>
-        /// Чиста функція: фільтрація від'ємних чисел
+        /// Фільтрація від'ємних чисел
         /// </summary>
         public static ListNode FilterNegatives(ListNode list) =>
             IsEmpty(list)
@@ -122,7 +122,7 @@ namespace DP_LAB1.Models
                     : FilterNegatives(Tail(list));
 
         /// <summary>
-        /// Чиста функція: перетворення списку в рядок для відображення
+        /// Перетворення списку в рядок для відображення
         /// </summary>
         public static string FormatList(ListNode list) =>
             IsEmpty(list) ? "[]" : "[" + FormatElements(list) + "]";
@@ -135,14 +135,13 @@ namespace DP_LAB1.Models
                     : Head(list).ToString() + ", " + FormatElements(Tail(list));
 
         /// <summary>
-        /// Парсинг вхідного рядка (використовуємо вбудовані функції тільки для парсингу)
+        /// Парсинг вхідного рядка
         /// </summary>
         public static string[] ParseInput(string input)
         {
             if (string.IsNullOrWhiteSpace(input))
                 return new string[0];
 
-            // Використовуємо вбудовані функції для парсингу
             return input
                 .Split(new char[] { ',', ';', ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries)
                 .Select(s => s.Trim())
