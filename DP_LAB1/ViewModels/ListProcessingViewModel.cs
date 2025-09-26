@@ -1,219 +1,127 @@
-﻿using DP_LAB1.Commands;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using DP_LAB1.Models;
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Input;
 
 namespace DP_LAB1.ViewModels
 {
-    public class ListProcessingViewModel : INotifyPropertyChanged
+    public partial class ListProcessingViewModel : ObservableObject
     {
+        /// <summary>
+        /// Внутрішній клас для інкапсуляції результатів обробки.
+        /// </summary>
+        private class ProcessingResult
+        {
+            public bool IsSuccess { get; }
+            public string ErrorMessage { get; }
+            public ImmutableStringList InputList { get; }
+            public ImmutableStringList ResultList { get; }
+            public ProcessingInfo Details { get; }
+
+            private ProcessingResult(ImmutableStringList input, ImmutableStringList result, ProcessingInfo details)
+            {
+                IsSuccess = true;
+                ErrorMessage = string.Empty;
+                InputList = input;
+                ResultList = result;
+                Details = details;
+            }
+
+            private ProcessingResult(string errorMessage)
+            {
+                IsSuccess = false;
+                ErrorMessage = errorMessage;
+                InputList = new ImmutableStringList(0);
+                ResultList = new ImmutableStringList(0);
+                Details = new ProcessingInfo();
+            }
+
+            public static ProcessingResult Create(string rawInput)
+            {
+                if (string.IsNullOrWhiteSpace(rawInput))
+                {
+                    return new ProcessingResult(new ImmutableStringList(0), new ImmutableStringList(0), new ProcessingInfo());
+                }
+
+                try
+                {
+                    string[] elements = ListOperations.ParseInputString(rawInput);
+                    if (elements.Length == 0)
+                    {
+                        return new ProcessingResult("Не вдалося розпарсити вхідні дані. Перевірте формат.");
+                    }
+
+                    ListNode inputListNode = ListOperations.StringArrayToList(elements);
+
+                    var details = new ProcessingInfo
+                    {
+                        InputLength = ListOperations.GetLength(inputListNode),
+                        NegativeCount = ListOperations.CountNegativeNumbers(inputListNode),
+                        ProductOfNegatives = ListOperations.ProductOfNegativeNumbers(inputListNode),
+                        NegativeNumbersDisplay = GetNegativeNumbersDisplay(inputListNode)
+                    };
+
+                    ListNode resultListNode = ListOperations.ProcessListVariant9(inputListNode);
+
+                    return new ProcessingResult(
+                        ListOperations.ListToStringArray(inputListNode),
+                        ListOperations.ListToStringArray(resultListNode),
+                        details);
+                }
+                catch (Exception ex)
+                {
+                    return new ProcessingResult($"Помилка при обробці: {ex.Message}");
+                }
+            }
+            private static string GetNegativeNumbersDisplay(ListNode list)
+            {
+                ListNode negativesList = ListOperations.GetNegativeNumbersList(list);
+                if (negativesList == null) return "";
+
+                ImmutableStringList negativesForDisplay = ListOperations.ListToStringArray(negativesList);
+                if (negativesForDisplay.Count == 0) return "";
+
+                return ListOperations.FormatStringArrayRecursive(negativesForDisplay.ToArray(), 0);
+            }
+        }
+
+        [ObservableProperty]
         private string _inputList = "";
-        private string _inputListFormatted = "";
-        private string _resultList = "";
-        private bool _isProcessed = false;
-        private ProcessingInfo _processingDetails = new();
-        private string _errorMessage = "";
-        private bool _hasError = false;
 
-        public string InputList
-        {
-            get => _inputList;
-            set
-            {
-                if (_inputList != value)
-                {
-                    _inputList = value;
-                    OnPropertyChanged();
-                    ClearResults();
-                }
-            }
-        }
-
-        public string InputListFormatted
-        {
-            get => _inputListFormatted;
-            private set
-            {
-                if (_inputListFormatted != value)
-                {
-                    _inputListFormatted = value;
-                    OnPropertyChanged();
-                }
-            }
-        }
-
-        public string ResultList
-        {
-            get => _resultList;
-            private set
-            {
-                if (_resultList != value)
-                {
-                    _resultList = value;
-                    OnPropertyChanged();
-                }
-            }
-        }
-
-        public bool IsProcessed
-        {
-            get => _isProcessed;
-            private set
-            {
-                if (_isProcessed != value)
-                {
-                    _isProcessed = value;
-                    OnPropertyChanged();
-                }
-            }
-        }
-
-        public ProcessingInfo ProcessingDetails
-        {
-            get => _processingDetails;
-            private set
-            {
-                if (_processingDetails != value)
-                {
-                    _processingDetails = value;
-                    OnPropertyChanged();
-                }
-            }
-        }
-
-        public string ErrorMessage
-        {
-            get => _errorMessage;
-            private set
-            {
-                if (_errorMessage != value)
-                {
-                    _errorMessage = value;
-                    OnPropertyChanged();
-                }
-            }
-        }
-
-        public bool HasError
-        {
-            get => _hasError;
-            private set
-            {
-                if (_hasError != value)
-                {
-                    _hasError = value;
-                    OnPropertyChanged();
-                }
-            }
-        }
-
-        public ICommand ProcessListCommand { get; }
+        private ProcessingResult _processingResult;
 
         public ListProcessingViewModel()
         {
-            ProcessListCommand = new RelayCommand(ProcessList, CanProcessList);
+            _processingResult = ProcessingResult.Create(_inputList);
         }
 
-        private bool CanProcessList(object? parameter)
+        partial void OnInputListChanged(string value)
         {
-            return !string.IsNullOrWhiteSpace(InputList);
+            ProcessList();
         }
 
-        private void ProcessList(object? parameter)
+        public string InputListFormatted => FormatListForDisplay(_processingResult.InputList);
+        public string ResultList => FormatListForDisplay(_processingResult.ResultList);
+        public bool IsProcessed => _processingResult.IsSuccess && _processingResult.InputList.Count > 0;
+        public ProcessingInfo ProcessingDetails => _processingResult.Details;
+        public string ErrorMessage => _processingResult.ErrorMessage;
+        public bool HasError => !_processingResult.IsSuccess;
+
+        private void ProcessList()
         {
-            try
-            {
-                ClearResults();
+            _processingResult = ProcessingResult.Create(InputList);
 
-                string[] elements = ListOperations.ParseInputString(InputList);
-                if (elements.Length == 0)
-                {
-                    SetError("Не вдалося розпарсити вхідні дані. Перевірте формат.");
-                    return;
-                }
-
-                ListNode inputListNode = ListOperations.StringArrayToList(elements);
-
-                ImmutableStringList inputForDisplay = ListOperations.ListToStringArray(inputListNode);
-                InputListFormatted = FormatListForDisplay(inputForDisplay);
-
-                ListNode resultListNode = ListOperations.ProcessListVariant9(inputListNode);
-
-                ImmutableStringList resultForDisplay = ListOperations.ListToStringArray(resultListNode);
-                ResultList = FormatListForDisplay(resultForDisplay);
-
-                ProcessingDetails = new ProcessingInfo
-                {
-                    InputLength = ListOperations.GetLength(inputListNode),
-                    NegativeCount = ListOperations.CountNegativeNumbers(inputListNode),
-                    ProductOfNegatives = ListOperations.ProductOfNegativeNumbers(inputListNode),
-                    NegativeNumbersDisplay = GetNegativeNumbersDisplay(inputListNode)
-                };
-
-                IsProcessed = true;
-            }
-            catch (Exception ex)
-            {
-                SetError($"Помилка при обробці: {ex.Message}");
-            }
-        }
-
-        private void ClearResults()
-        {
-            InputListFormatted = "";
-            ResultList = "";
-            IsProcessed = false;
-            ProcessingDetails = new ProcessingInfo();
-            ErrorMessage = "";
-            HasError = false;
-        }
-
-        private void SetError(string message)
-        {
-            ErrorMessage = message;
-            HasError = true;
-            IsProcessed = false;
+            OnPropertyChanged(nameof(InputListFormatted));
+            OnPropertyChanged(nameof(ResultList));
+            OnPropertyChanged(nameof(IsProcessed));
+            OnPropertyChanged(nameof(ProcessingDetails));
+            OnPropertyChanged(nameof(ErrorMessage));
+            OnPropertyChanged(nameof(HasError));
         }
 
         private string FormatListForDisplay(ImmutableStringList list)
         {
             if (list.Count == 0) return "[]";
-
-            string[] items = new string[list.Count];
-            for (int i = 0; i < list.Count; i++)
-            {
-                items[i] = list[i] ?? "null";
-            }
-            return "[" + string.Join(", ", items) + "]";
-        }
-
-        private string GetNegativeNumbersDisplay(ListNode list)
-        {
-            ListNode negativesList = ListOperations.GetNegativeNumbersList(list);
-            if (negativesList == null) return "";
-
-            ImmutableStringList negativesForDisplay = ListOperations.ListToStringArray(negativesList);
-            if (negativesForDisplay.Count == 0) return "";
-
-            string[] items = new string[negativesForDisplay.Count];
-            for (int i = 0; i < negativesForDisplay.Count; i++)
-            {
-                items[i] = negativesForDisplay[i] ?? "null";
-            }
-            return string.Join(", ", items);
-        }
-
-        public event PropertyChangedEventHandler? PropertyChanged;
-
-        protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            return "[" + ListOperations.FormatStringArrayRecursive(list.ToArray(), 0) + "]";
         }
     }
 }
