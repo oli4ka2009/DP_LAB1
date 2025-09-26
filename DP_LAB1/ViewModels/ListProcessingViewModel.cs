@@ -72,6 +72,7 @@ namespace DP_LAB1.ViewModels
                     return new ProcessingResult($"Помилка при обробці: {ex.Message}");
                 }
             }
+
             private static string GetNegativeNumbersDisplay(ListNode list)
             {
                 ListNode negativesList = ListOperations.GetNegativeNumbersList(list);
@@ -85,6 +86,12 @@ namespace DP_LAB1.ViewModels
         }
 
         [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(InputListFormatted))]
+        [NotifyPropertyChangedFor(nameof(ResultList))]
+        [NotifyPropertyChangedFor(nameof(IsProcessed))]
+        [NotifyPropertyChangedFor(nameof(ProcessingDetails))]
+        [NotifyPropertyChangedFor(nameof(ErrorMessage))]
+        [NotifyPropertyChangedFor(nameof(HasError))]
         private string _inputList = "";
 
         private ProcessingResult _processingResult;
@@ -96,7 +103,7 @@ namespace DP_LAB1.ViewModels
 
         partial void OnInputListChanged(string value)
         {
-            ProcessList();
+            _processingResult = ProcessingResult.Create(value);
         }
 
         public string InputListFormatted => FormatListForDisplay(_processingResult.InputList);
@@ -105,18 +112,6 @@ namespace DP_LAB1.ViewModels
         public ProcessingInfo ProcessingDetails => _processingResult.Details;
         public string ErrorMessage => _processingResult.ErrorMessage;
         public bool HasError => !_processingResult.IsSuccess;
-
-        private void ProcessList()
-        {
-            _processingResult = ProcessingResult.Create(InputList);
-
-            OnPropertyChanged(nameof(InputListFormatted));
-            OnPropertyChanged(nameof(ResultList));
-            OnPropertyChanged(nameof(IsProcessed));
-            OnPropertyChanged(nameof(ProcessingDetails));
-            OnPropertyChanged(nameof(ErrorMessage));
-            OnPropertyChanged(nameof(HasError));
-        }
 
         private string FormatListForDisplay(ImmutableStringList list)
         {
